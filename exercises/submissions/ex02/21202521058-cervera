@@ -1,1 +1,305 @@
+# ============================================================
+# MQ101- Metodos Quantitativos para Politicas Publicas
+# Lista de Exercicios #02
+# ------------------------------------------------------------
+# Nome: CELIA CERVERA CALLACNA
+# RA: 21202521058
+# Data: 09/10/2025
+# Respostas da Lista #02
+------------------------------------------
+#EXERCICIO 1- Preparacao de ambiente
+  
+install.packages(c("tidyverse", "readr"))
+library(tidyverse) #cada vez que inicie R
+options(scipen = 999)
 
+#EXERCICIO 2- Base de dados (contexto e dicion??rio)
+#Verifique: numero de linhas/colunas; classes das variaveis; existencia de NA
+
+dados <- readr::read_csv(file.choose()) #atribuir data 
+glimpse(dados) #mostrar dados horizontal
+summary(dados)
+
+nrow(dados)#linhas
+ncol(dados)#colunas
+str(dados)#clases das variaveis
+
+sum(is.na(dados)) #existencia de NA
+colSums(is.na(dados)) #existencia de NA por colum (ajuda de Gemini)
+
+#EXERCICIO 3- ClassificaC'C#o de variC!veis
+#uma tabela (no seu script) indicando o tipo teorico de cada variavel (nominal,
+#ordinal, discreta, contC-nua).
+
+df1 <- data.frame(
+  variavel = c("sexo", "escolaridade", "rede_escolar", "idade","faltas_esc",
+               "tempo_estudo_h","pressao_sistolica","diagnostico","plano_saude"),
+  tipoteorico= c("nominal","ordinal","nominal","continua","discreta","continua",
+                  "continua","nominal","nominal"),
+  stringsAsFactors = FALSE
+)
+
+print(df1)
+
+dados <- dados |>
+  mutate(sexo= factor(sexo),
+         rede_escolar = factor(rede_escolar),
+         plano_saude = factor(plano_saude),
+         diagnostico = factor(diagnostico),
+         escolaridade = factor(escolaridade,
+                               levels = c("Fundamental","Médio","Superior"),
+                               ordered = TRUE)
+   )
+
+str(dados)
+glimpse(dados)
+
+#EXERCICIO 4a
+
+tab_plano <- table(dados$plano_saude)
+tab_plano
+prop_plano <- prop.table(tab_plano)
+prop_plano
+
+cbind(FA = tab_plano, FR = round(100 * prop_plano, 1)) #FA conteo #FR proporciones
+
+#a <- prop.table(table(dados$sexo))
+
+
+# Interprete: qual categoria é a moda? Qual a proporcao dominante?
+
+#EXERCICIO 4b Grafico de barras - qualitativa nominal
+
+dados |>
+  count(plano_saude) |>
+  ggplot(aes(x = plano_saude, y = n)) +
+  geom_col() +
+  labs(x = "Plano de sade", y = "Frequencia",
+       title = "Distribuio de plano de sade")
+
+#EXERCICIO 4c Grafico de barras - quantitativa ordinal
+
+dados |>
+  count(escolaridade) |>
+  ggplot(aes(x = escolaridade, y = n)) +
+  geom_col() +
+  labs(x = "Escolaridade (ordem substantiva)", y = "Frequencia")
+
+#Explique por que a ordem importa para interpretar a distribuicao
+
+#A ordem é importante porque permite visualizar claramente as categorias,
+#tratando-se de uma variável qualitativa ordinal.
+
+#EXERCICIO 5:
+
+#resumen para edade
+sumario_idade <- dados |>
+  summarise(
+    n=sum(!is.na(idade)), #suma todos valore e excluye na 
+    media=mean(idade,na.rm = TRUE), #excluye NA
+    mediana=median(idade,na.rm = TRUE),
+    min=min(idade,na.rm = TRUE),
+    max=max(idade,na.rm = TRUE),
+    dp=sd(idade,na.rm = TRUE)
+  )
+
+sumario_idade
+
+#resumen para pressao sistolica
+sumario_pressaosistolica <- dados |>
+  summarise(
+    n=sum(!is.na(pressao_sistolica)), #suma todos valores e excluye na 
+    media=mean(pressao_sistolica,na.rm = TRUE), #excluye NA
+    mediana=median(pressao_sistolica,na.rm = TRUE),
+    min=min(pressao_sistolica,na.rm = TRUE),
+    max=max(pressao_sistolica,na.rm = TRUE),
+    dp=sd(pressao_sistolica,na.rm = TRUE)
+  )
+
+sumario_pressaosistolica
+
+#Compare média vs mediana. Há assimetria?
+
+#A média (40,4) e a mediana (40) são praticamente iguais. Isso sugere que a 
+#distribuição de idades é bastante simétrica, sem forte inclinação para valores 
+#mais baixos ou mais altos. O mesmo para a pressão sistólica.
+
+#Graficar
+
+ggplot(dados, aes(x=idade))+
+  geom_histogram(bins=20)+
+  labs(title = "Histograma de Idade")
+
+
+ggplot(dados, aes(x=idade))+
+  geom_boxplot()+
+  labs(title = "Boxplot de Idade")
+
+#Interprete forma, caudas e outliers.
+
+#Para la variable edad, 
+
+#Repita para pressao_sistolica
+
+ggplot(dados, aes(x=pressao_sistolica))+
+  geom_histogram(bins=20)+
+  labs(title = "Histograma de Pressao Sistolica")
+
+
+ggplot(dados, aes(x=pressao_sistolica))+
+  geom_boxplot()+
+  labs(title = "Boxplot de Pressao sistolica")
+  
+
+#EXERCICIO 6  Tabelas cruzadas e resumos por grupo 
+
+#Cruzando duas qualitativas
+tab_cross <- table(dados$diagnostico, dados$plano_saude)
+tab_cross
+round(100 * prop.table(tab_cross, margin = 2), 1) #% por columna 
+# Qual diagnC3stico C) mais prevalente dentro de cada tipo de plano?
+
+#Resumo de quantitativa por grupo
+dados|>
+  group_by(sexo)|>
+  summarise(
+    n=n(),
+    media_idade=mean(idade,na.rm=TRUE),
+    dp_idade=sd(idade,na.rm=TRUE),
+    mediana_idade=median(idade,na.rm = TRUE)
+  )
+
+dados|>
+  group_by(escolaridade)|>
+   summarise(
+    n=n(),
+    media_idade=mean(idade,na.rm=TRUE),
+    dp_idade=sd(idade,na.rm=TRUE),
+    mediana_idade=median(idade,na.rm = TRUE)
+  )
+
+
+#Compare idade por sexo e por escolaridade. Comente diferenC'as
+
+#EXERCICIO 7  Valores ausentes e outliers 
+
+#7a valores ausentes
+
+colSums(is.na(dados))
+
+#7b Outliers (regra do IQR)
+
+Q<-quantile(dados$tempo_estudo_h, probs = c(.25, .75), na.rm = TRUE)
+Q
+IQRv <- IQR(dados$tempo_estudo_h, na.rm = TRUE)
+lim_inf <- Q[1]- 1.5 * IQRv
+lim_sup <- Q[2] + 1.5 * IQRv
+
+subset_out <- dados |>
+  filter(tempo_estudo_h < lim_inf | tempo_estudo_h > lim_sup)
+  
+nrow(subset_out)
+head(subset_out)
+
+# Discuta: outliers sC#o erros, casos raros ou informaC'C#o vC!lida?
+
+#EXERCICIO 8
+#Chamamos os dados novamente
+
+#Educacion
+#a. Distribucion de red_escolar (FA/FR)
+
+tab_redescol <- table(dados$rede_escolar)
+prop_redescol<- prop.table(tab_redescol)
+prop_redescol
+
+cbind(FA = tab_redescol, FR = round(100 *prop_redescol, 1)) #FA conteo #FR proporciones
+
+#b. Compare tempo_estudo_h por escolaridade com boxplots.
+
+ggplot(dados,aes(tempo_estudo_h,escolaridade))+
+  geom_boxplot(show.legend = TRUE, outlier.alpha = 0.4)+
+  labs(title = "Tempo de estudo por escolaridade",
+       x = "Horas de estudo", y = "Nivel de Escolaridade") +
+  theme_minimal()
+
+#c. Interprete: hC! padrC#o monotC4nico com a ordem da escolaridade?
+
+#Saude
+#a.  Histograma de pressao_sistolica e reporte mC)dia/mediana/DP."
+
+hist(dados$pressao_sistolica)
+
+    media=mean(pressao_sistolica,na.rm = TRUE)
+    mediana=median(pressao_sistolica,na.rm = TRUE)
+    dp=sd(pressao_sistolica,na.rm = TRUE)
+
+#Cruzamento diagnostico C plano_saude (% por coluna).
+tab_cross2 <- table(dados$diagnostico, dados$plano_saude)
+tab_cross2
+round(100 * prop.table(tab_cross2, margin = 2), 1) #% por columna 
+
+#Interprete: qual diagnC3stico C) mais prevalente em cada plano?
+
+#EXERCICIO 9
+
+# Crie uma tabela-sC-ntese por escolaridade:
+# a) in, mC)dia e mediana de idade, DP, mC-nimo e mC!ximo;
+
+dados|>
+  group_by(escolaridade)|>
+  summarise(
+    n=n(),
+    media_idade=mean(idade,na.rm=TRUE),
+    mediana_idade=median(idade,na.rm = TRUE),
+    dp_idade=sd(idade,na.rm=TRUE),
+    minimo=min(idade,na.rm=TRUE),
+    maximo=max(idade,na.rm=TRUE)
+  )
+
+#FA/FR de plano_saude dentro de cada escolaridade.
+
+##escol_Fund <- dados |>
+##filter(escolaridade == "Fundamental") |>
+##count()
+
+T1 <- table(dados$plano_saude, dados$escolaridade)
+prop_T1 <- prop.table(T1)
+
+cbind(FA=T1,FR=round(prop_T1*100,1))
+
+#Produza dois grC!ficos
+# 1. Barras empilhadas de plano_saude por escolaridade (proporC'C5es).
+# Dica: use group_by(), summarise(), count(), mutate(prop = n/sum(n)) e position
+# = "fill" no geom_col
+
+p_barras_proporciones <- dados |>
+  group_by(escolaridade) |>
+  mutate(proportion= n()/sum(n()))|>
+  ungroup() |>
+  ggplot(aes(x =escolaridade, y= proportion, fill = plano_saude)) +
+  geom_col(position = "fill")+
+  scale_y_continuous(labels = scales::percent) +
+  labs(
+    title = "Planos de Saude por Escolaridade",
+    x = "Nivel de Escolaridade",
+    y = "Proporcao(%)",
+    fill = "Plano de saude") 
+
+  print(p_barras_proporciones)
+  
+# 2. Boxplot de tempo_estudo_h por escolaridade
+  
+  graf_tempo <- dados |>
+    group_by(escolaridade) |>
+    ungroup() |>
+    ggplot(aes(x=escolaridade, y=tempo_estudo_h, fill=escolaridade))+
+    geom_boxplot(show.legend = FALSE, outlier.alpha = 0.4)+
+    coord_flip()+
+    labs(title= "Tempo de estudo por escolaridade",
+    x="Nivel de escolaridade",
+    y="Horas de estudo")
+  
+  print(graf_tempo)
+
+  sesioninfo()
