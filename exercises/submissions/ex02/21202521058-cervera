@@ -67,6 +67,7 @@ cbind(FA = tab_plano, FR = round(100 * prop_plano, 1)) #FA conteo #FR proporcion
 
 
 # Interprete: qual categoria é a moda? Qual a proporcao dominante?
+# A moda é SUS e a proporção dominante corresponde tambén á ista categoria.
 
 #EXERCICIO 4b Grafico de barras - qualitativa nominal
 
