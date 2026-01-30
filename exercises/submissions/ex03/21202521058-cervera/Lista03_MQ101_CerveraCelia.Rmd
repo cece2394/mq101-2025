@@ -1,0 +1,401 @@
+---
+title: "Lista03_MQ101_CerveraCelia"
+author: "Celia Cervera Callacná - 21202521058"
+date: "29/10/2025"
+output: html_document
+---
+
+# Preparacão do ambiente
+
+install.packages(c("tidyverse","readr","ggplot2","scales","viridis", "electionsBR"))
+
+```{r}
+set.seed(101)
+library(tidyverse)
+```
+
+# (0) Aquecimento: Tabela vs. Gráfico (dados internos)
+
+Passos. Carregue a base cars; exiba as 10 primeiras linhas (tabela); produza um gráfico de dispersão speed × dist; interprete
+
+```{r}
+data(cars)
+head(cars,10)
+
+ggplot(cars, aes(speed, dist)) +
+  geom_point(alpha = 0.6) +
+  geom_smooth(method = "lm", se = TRUE, linewidth = 0.8) +
+  labs(title = "Speed x distance", x = "Speed", y = "Distance") +
+  theme_minimal()
+```
+
+# (1) Distribucões univariadas e grupos
+
+```{r}
+data(mtcars)
+      mtcars <- mtcars |>
+        mutate(cyl = as.factor(cyl)) #para convertir la variable "cyl" en variable
+                                     #categorica (factores)
+```
+
+## Gráfico de densidades de mpg
+
+```{r}
+     library(ggplot2)
+      
+     p_dens <- ggplot(mtcars, aes(x = mpg, fill = cyl)) +
+        geom_density(alpha = 0.4) +
+        scale_fill_viridis_d(name = "Número de cilindros") +
+        labs(title = "Densidade do rendimiento do combustível (mpg)",
+             x = "mpg", y = "Densidade") +
+        theme_minimal()
+      
+     p_dens
+```
+
+```         
+Interpretação: Existe uma relação inversa entre o desempenho de um carro e
+o número de cilindros.
+```
+
+## Histograma MPG
+
+```{r}
+ggplot(mtcars, aes(x = mpg)) +
+        geom_histogram(
+          bins = 10,          # n??mero de barras
+          fill = "skyblue",   # color de relleno
+          color = "black"     # color del borde
+        ) +
+        labs(
+          title = "Histograma de rendimiento de combustível",
+          x = "Milhas por galhão (mpg)",
+          y = "Frequencia"
+        ) +
+        theme_minimal()
+```
+
+## Boxplot de cyl
+
+```{r}
+ggplot(mtcars, aes(x = cyl, y = mpg, fill = cyl)) +
+        geom_boxplot(show.legend = TRUE, outlier.alpha = 0.4) +
+        labs(
+          title = "Consumo de combustível por número de cilindros",
+          x = "Numero de cilindros",
+          y = "MPG"  ) +
+        theme_minimal()
+```
+
+# (2) Serie temporal simples
+
+Data Air Passenger/ crie grafico(s) de linha/pontos e destaque tendencia.
+
+```{r}
+data("AirPassengers")
+```
+
+install.packages("zoo")
+
+```{r}
+library(tibble)  
+library(zoo)
+```
+
+## Usamos la função time()
+
+```{r}
+ap <- tibble(
+  date = time(AirPassengers) %>% zoo::as.Date(),
+  n = as.numeric(AirPassengers),
+  year = format(date, "%Y"),
+  month = format(date, "%m"),
+  month_name = format(date, "%b")
+)
+
+head(ap)
+```
+
+## gráfico de linhas e pontos
+
+```{r}
+ggplot(ap, aes(date, n)) + 
+      geom_line(color = "steelblue", linewidth = 0.8) +
+      geom_point(color = "darkred", size = 1.5)+
+      scale_x_date(date_breaks = "1 year", date_labels = "%Y") +
+      labs(
+        title ="Numero de passageiros por ano (1949-1960)",
+        subtitle = "Tendencia da serie de tempo AirPassengers",
+        x="Data",
+        y="Frequencia")+
+      theme_minimal()
+```
+
+## OPCIONAL: Código para Resaltar por Mes
+
+```{r}
+ggplot(ap, aes(date, n), group=1) + 
+  geom_line(color = "gray60", linewidth = 0.5) +
+  geom_point(aes(color= month), size = 2)+
+  scale_x_date(date_breaks = "1 year", date_labels = "%Y") +
+  labs(
+    title ="Estacionalidade de passageiros por mes (1949-1960)",
+    subtitle="A cor identifica os meses de maior e menor tráfego",
+    x="Data",
+    y="Frequencia",
+    color="Número de mes")+
+    scale_color_discrete()+
+    theme_minimal()
+```
+
+# Data Air Quality
+
+```{r}
+data("airquality")
+aq <- airquality |> 
+  as_tibble() |> 
+  drop_na(Ozone) |>
+  mutate(Month = factor(Month),
+         Day = as.integer(Day))
+```
+
+## gráfico de linhas e pontos
+
+```{r}
+ggplot(aq, aes(x=Day,y=Ozone)) + 
+  geom_line(color = "steelblue", linewidth = 0.8) +
+  geom_point(color = "darkred", size = 1.5)+
+  facet_wrap(~ Month, 
+            scales = "free_x") +
+  labs(
+    title = "Concentração diária de ozônio (1973)",
+    subtitle = "Tendência da série de ozônio (maio a setembro)",
+    x = "Data(Dia)",
+    y = "Concentração de ozônio (ppb)")
+```
+
+# (4) Relações bivariada (mtcars): wt e mpg, com linha lm e depois loess.
+
+Compare as duas.
+
+# Linha LM
+
+```{r}
+ggplot(mtcars, aes(wt, mpg)) +
+  geom_point(color = "steelblue", size = 2, alpha=0.6) +
+  geom_smooth(method = "lm", se = TRUE, linewidth = 0.8, color="darkred") +
+  labs(title = "Relação entre peso do carro e consumo de combustível",
+       x = "Peso do carro (1000 lb)", y = "Milhas por galhão (mpg)")+
+  theme_minimal()
+```
+
+A tendencia é negativa, carros mais pesados (wt maior) tem menor eficiencia (mpg menor).
+
+# LOESS
+
+```{r}
+ggplot(mtcars, aes(wt, mpg)) +
+  geom_point(color = "steelblue", size = 2, alpha=0.6) +
+  geom_smooth(method = "loess", se = TRUE, linewidth = 0.8, color = "darkred") +
+  labs(title = "Relação entre peso do carro e consumo de combustível",
+       x = "Peso do carro (1000 lb)", y = "Milhas por galhão (mpg)")+
+  theme_minimal()
+```
+
+A linha suavizada se ajusta melhor a os dados, a medida que o peso aumenta, o número de milhas por galhão é menor.
+
+# (4) Facetas (mtcars): hp e mpg com facet_wrap(\~ am) e ajuste lm por painel.
+
+```{r}
+mtcars <- mtcars |>
+  mutate(am = factor(am, labels = c("Automatico","Manual")))
+
+ggplot(mtcars, aes(hp,mpg)) +
+  geom_point(color = "steelblue", size=2, alpha = 1) +
+  facet_wrap(~am) +
+  labs(
+    title = "Relação entre potencia do motor e consumo de combustível ",
+    x = "Potencia do motor (hp)", y = "Milhas por galhão (mpg)" )
+```
+
+Os carros manuais costumam ter um melhor desempenho (mpg) do que os automáticos com potência semelhante. Existe uma tendência de maior potência, menor eficiência.
+
+# (5) Simulação I (correlação):
+
+três níveis de correlação (ρ = 0.2,0.6,0.9); faça três dispersões; compare.
+
+```{r}
+n <- 1000 
+  rhos <- c(0.2, 0.6, 0.9)              #correlação Pearson/ correlação lineal
+  
+  
+  sim <- purrr::map_dfr(rhos, \(rho) {
+  x <- rnorm(n); e <- rnorm(n)
+  y <- rho*x + sqrt(1 - rho^2)*e
+  tibble(rho = rho, x = x, y = y)
+  })
+  
+  
+  ggplot(sim, aes(x = x, y = y)) +
+    geom_point(alpha = 0.6, color = "steelblue") +
+    geom_smooth(method = "lm", se = FALSE, color = "darkred") + 
+    facet_wrap(~ rho, scales = "free") + # Separar por rho
+    labs(
+      title = "Comparação de dados simulados com diferentes correlações (rho)",
+      x = "Variavel X",
+      y = "Variavel Y"
+    ) +
+    theme_minimal()
+```
+
+rho = 0,2 (Correlação positiva fraca): Os pontos estarão muito dispersos e formarão uma nuvem ampla. Será difícil ver uma direção clara. Os pontos estão distribuídos longe da linha. rho = 0,4 (Correlação Moderada Positiva) rho = 0,6 (Correlação Forte Positiva)
+
+# (6) Simulação II (grupos): duas distribuições com médias/variancias diferentes; histogramas/densidades/boxplot/violin.
+
+Passos. Simule grupo A: N (0, 1); grupo B: N (1, 1.8);faça histogramas/densidades/boxplot/violin; interprete.
+
+```{r}
+n <- 1000
+  df_grupos <- tibble(grupo = rep(c("A","B"),
+                each = n), valor = c(rnorm(n, 0, 1), rnorm(n, 1, 1.8)))
+```
+
+### HISTOGRAMA
+
+```{r}
+ggplot(df_grupos, aes(x = valor, fill = grupo)) +
+         geom_histogram(aes(y = after_stat(density)), 
+                        binwidth = 0.4, alpha = 0.6, position = "identity") +
+      labs(
+      title = "Comparação de Distribuições",
+         x = "Valor",
+         y = "Densidade",
+      fill = "Grupo"  ) +
+    theme_minimal()
+```
+
+### DENSIDADE
+
+```{r}
+ggplot(df_grupos, aes(x = valor, fill = grupo)) +
+    geom_density(alpha = 0.2) +
+    labs(
+      title = "Comparação de Distribuições",
+      x = "Valor",
+      y = "Densidade",
+      fill = "Grupo"  ) +
+    theme_minimal()
+```
+
+#### BOXPLOT
+
+```{r}
+ggplot(df_grupos, aes(x = grupo, y = valor, fill = grupo)) +
+    geom_boxplot(alpha = 0.7) +
+      labs(
+      title = "Comparação de Distribuições", 
+      x = "Grupo",
+      y = "Valor",
+      fill = "Grupo"
+    ) +
+    theme_minimal()
+  
+```
+
+### VIOLIN
+
+```{r}
+ggplot(df_grupos, aes(x = grupo, y = valor, fill = grupo)) +
+  geom_violin(alpha = 0.3, trim = FALSE) + 
+    geom_boxplot(width= 0.1,alpha = 0.7) +
+   labs(
+      title = "Comparação de Distribuições",
+      x = "Grupo",
+      y = "Valor",
+      fill = "Grupo"
+    ) +
+    theme_minimal()
+```
+
+### Interpretação:
+
+O grupo A tem valores mais concentrados em torno de 0, enquanto no grupo B os dados estão mais dispersos e deslocados para a direita. Embora os valores se sobreponham, observa-se uma tendência para valores mais elevados no grupo B.
+
+# (8) educ_saude - explorar gráficos
+
+Escolher 1 variavel de educação e 1 de saúde; histogramas/densidades/boxplots; dispersão com lm e loess; facetas por um terceiro fator; interpretação.
+
+```{r}
+  library(readr)
+    educ <- read_csv(file.choose())
+    glimpse(educ)
+```
+
+### HISTOGRAMA
+
+```{r}
+ggplot(educ, aes(x = tempo_estudo_h, fill = plano_saude)) +
+      geom_histogram(aes(y = after_stat(density)),
+                     binwidth = 0.4, alpha = 0.4, position = "identity") +
+      labs(
+        title = "Comparação de Distribuições",
+        x = "Valor: Tempo de estudo em horas",
+        y = "Densidade",
+        fill = "Grupo") +
+      theme_minimal()
+```
+
+### DENSIDAD
+
+```{r}
+ggplot(educ, aes(x = tempo_estudo_h, fill = plano_saude)) +
+      geom_density(alpha = 0.4) +
+      labs(
+        title = "Distribuição da Densidade do Tempo de Estudo",
+        x = "Tempo de estudo (horas)",
+        y = "Densidade",
+        fill = "Plano de saúde"
+      ) +
+      theme_minimal()
+```
+
+### BOXPLOT
+
+```{r}
+ggplot(educ, aes(x = plano_saude, y = tempo_estudo_h, fill= plano_saude)) +
+      geom_boxplot(alpha = 0.6) +
+      labs(
+        title = "Boxplot do Tempo de Estudo por Plano de Saúde",
+        x = "Plano de saúde",
+        y = "Tempo de estudo (horas)",
+        fill = "Plano de saúde"
+      ) +
+      theme_minimal()+
+     theme(legend.position = "none")
+```
+
+### VIOLIN
+
+```{r}
+ggplot(educ, aes(x = plano_saude, y = tempo_estudo_h, fill = plano_saude)) +
+      geom_violin(trim = FALSE, alpha = 0.4) +
+      geom_boxplot(width = 0.1, fill = "white", alpha = 0.6) +
+      labs(
+        title = "Distribuição do Tempo de Estudo por Plano de Saúde",
+        x = "Plano de saúde",
+        y = "Tempo de estudo (horas)",
+        fill = "Plano de saúde"
+      ) +
+      theme_minimal()
+      theme(legend.position = "none")
+```
+
+# Interpretação:
+
+Foi analisada a relação entre o tempo de estudo em horas e o tipo de plano de saúde dos estudantes. O histograma mostra que os dados estão concentrados abaixo das 10 horas de estudo para todas as coberturas de saúde. No gráfico boxplot e violino, observa-se que os estudantes sem cobertura de saúde e os estudantes com SUS mantêm uma quantidade menor de horas de estudo; no entanto, não é possível estabelecer uma relação entre os hábitos de estudo e a cobertura de saúde do estudante.
+
+```{r}
+
+  sessionInfo()
+
+```
