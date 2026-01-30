@@ -13,7 +13,7 @@ install.packages(c("tidyverse", "readr"))
 library(tidyverse) #cada vez que inicie R
 options(scipen = 999)
 
-#EXERCICIO 2- Base de dados (contexto e dicion??rio)
+#EXERCICIO 2- Base de dados (contexto e dicionario)
 #Verifique: numero de linhas/colunas; classes das variaveis; existencia de NA
 
 dados <- readr::read_csv(file.choose()) #atribuir data 
@@ -27,9 +27,9 @@ str(dados)#clases das variaveis
 sum(is.na(dados)) #existencia de NA
 colSums(is.na(dados)) #existencia de NA por colum (ajuda de Gemini)
 
-#EXERCICIO 3- ClassificaC'C#o de variC!veis
+#EXERCICIO 3- Classificação de variaveis
 #uma tabela (no seu script) indicando o tipo teorico de cada variavel (nominal,
-#ordinal, discreta, contC-nua).
+#ordinal, discreta, continua).
 
 df1 <- data.frame(
   variavel = c("sexo", "escolaridade", "rede_escolar", "idade","faltas_esc",
@@ -137,7 +137,10 @@ ggplot(dados, aes(x=idade))+
 
 #Interprete forma, caudas e outliers.
 
-#Para la variable edad, 
+#Para a variável idade, o gráfico mostra uma forma simétrica. A faixa
+#é ampla (18 a 80 anos), mas a maioria das idades concentra-se em torno 
+#dos 40 anos.Também se observam valores atípicos no extremo próximo aos
+#80 anos.
 
 #Repita para pressao_sistolica
 
@@ -150,6 +153,11 @@ ggplot(dados, aes(x=pressao_sistolica))+
   geom_boxplot()+
   labs(title = "Boxplot de Pressao sistolica")
   
+#Interprete forma, caudas e outliers.
+
+#Para a variável pressao sistólica, o gráfico mostra uma forma simétrica. Os 
+#valores estão concentrados em torno de 120 mmHg e existem outliers entre
+#160 mmHg e 175 mmHg.
 
 #EXERCICIO 6  Tabelas cruzadas e resumos por grupo 
 
@@ -157,7 +165,10 @@ ggplot(dados, aes(x=pressao_sistolica))+
 tab_cross <- table(dados$diagnostico, dados$plano_saude)
 tab_cross
 round(100 * prop.table(tab_cross, margin = 2), 1) #% por columna 
-# Qual diagnC3stico C) mais prevalente dentro de cada tipo de plano?
+
+# Qual diagnostico mais prevalente dentro de cada tipo de plano?
+
+#Em todos os planos de saúde, prevalece o número de pessoas sem diagnóstico.
 
 #Resumo de quantitativa por grupo
 dados|>
@@ -179,7 +190,11 @@ dados|>
   )
 
 
-#Compare idade por sexo e por escolaridade. Comente diferenC'as
+#Compare idade por sexo e por escolaridade. Comente diferencas
+
+#Entre os participantes, a média de idade das mulheres é de 40,3 anos e a dos 
+#homens é de 40,5 anos. De acordo com o nível de escolaridade, nos três níveis, 
+#a média de idade se mantém em torno dos 40 anos.
 
 #EXERCICIO 7  Valores ausentes e outliers 
 
@@ -201,13 +216,19 @@ subset_out <- dados |>
 nrow(subset_out)
 head(subset_out)
 
-# Discuta: outliers sC#o erros, casos raros ou informaC'C#o vC!lida?
+summary(subset_out$tempo_estudo_h)
 
-#EXERCICIO 8
+# Discuta: outliers sao erros, casos raros ou informacao valida?
+#Trata-se de erros, pois são valores que, em média, atingem 19,91 horas, 
+#o que é praticamente impossível em condições normais. Deve-se analisar se eles 
+#devem ser mantidos ou eliminados para não alterar os valores da amostra.
+
+
+#EXERCICIO 8: Exercícios aplicados (educação e saúde) 
 #Chamamos os dados novamente
 
-#Educacion
-#a. Distribucion de red_escolar (FA/FR)
+#Educação
+#a. Distribucão de red_escolar (FA/FR)
 
 tab_redescol <- table(dados$rede_escolar)
 prop_redescol<- prop.table(tab_redescol)
@@ -223,28 +244,37 @@ ggplot(dados,aes(tempo_estudo_h,escolaridade))+
        x = "Horas de estudo", y = "Nivel de Escolaridade") +
   theme_minimal()
 
-#c. Interprete: hC! padrC#o monotC4nico com a ordem da escolaridade?
+#c. Interprete: há padrão monotônico com a ordem da escolaridade?
 
-#Saude
-#a.  Histograma de pressao_sistolica e reporte mC)dia/mediana/DP."
+#No gráfico, observa-se que existe um padrão monotônico crescente em relação ao
+#nível de escolaridade, à medida que se avança no nível, a média de horas de 
+#estudo aumenta.
+
+#Saúde
+#a.  Histograma de pressao_sistolica e reporte média/mediana/DP."
 
 hist(dados$pressao_sistolica)
 
-    media=mean(pressao_sistolica,na.rm = TRUE)
-    mediana=median(pressao_sistolica,na.rm = TRUE)
-    dp=sd(pressao_sistolica,na.rm = TRUE)
+    #media:
+    mean(dados$pressao_sistolica,na.rm = TRUE)
+    #mediana
+    median(dados$pressao_sistolica,na.rm = TRUE)
+    #desvio padrão
+    sd(dados$pressao_sistolica,na.rm = TRUE)
 
-#Cruzamento diagnostico C plano_saude (% por coluna).
+#Cruzamento diagnostico × plano_saude (% por coluna).
+    
 tab_cross2 <- table(dados$diagnostico, dados$plano_saude)
 tab_cross2
 round(100 * prop.table(tab_cross2, margin = 2), 1) #% por columna 
 
-#Interprete: qual diagnC3stico C) mais prevalente em cada plano?
+# Interprete: qual diagnóstico é mais prevalente em cada plano?
+# Em todos os planos de saúde, prevalece o número de pessoas sem diagnóstico.
 
-#EXERCICIO 9
+#EXERCICIO 9:  Desafio (opcional)
 
-# Crie uma tabela-sC-ntese por escolaridade:
-# a) in, mC)dia e mediana de idade, DP, mC-nimo e mC!ximo;
+# Crie uma tabela-síntese por escolaridade com:
+#  n, média e mediana de idade, DP, mínimo e máximo;
 
 dados|>
   group_by(escolaridade)|>
@@ -259,17 +289,13 @@ dados|>
 
 #FA/FR de plano_saude dentro de cada escolaridade.
 
-##escol_Fund <- dados |>
-##filter(escolaridade == "Fundamental") |>
-##count()
-
 T1 <- table(dados$plano_saude, dados$escolaridade)
 prop_T1 <- prop.table(T1)
 
 cbind(FA=T1,FR=round(prop_T1*100,1))
 
-#Produza dois grC!ficos
-# 1. Barras empilhadas de plano_saude por escolaridade (proporC'C5es).
+#Produza dois gráficos
+# 1. Barras empilhadas de plano_saude por escolaridade (proporções).
 # Dica: use group_by(), summarise(), count(), mutate(prop = n/sum(n)) e position
 # = "fill" no geom_col
 
@@ -302,4 +328,5 @@ p_barras_proporciones <- dados |>
   
   print(graf_tempo)
 
-  sesioninfo()
+  sessionInfo()
+  
