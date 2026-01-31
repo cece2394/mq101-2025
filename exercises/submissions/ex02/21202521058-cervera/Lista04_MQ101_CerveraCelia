@@ -1,0 +1,452 @@
+# ============================================================
+# MQ101- Métodos Quantitativos para Políticas Públicas
+# Lista de Exercicios #04
+# ------------------------------------------------------------
+# Nome: CELIA CERVERA CALLACNÁ
+# RA: 21202521058
+# Data: 23/11/2025
+# Respostas da Lista #04
+------------------------------------------
+#EXERCICIO 1: 
+
+      set.seed(123)
+      
+      # Probabilidade de cara
+      p_cara <- 0.3
+      
+      # Tamanhos de amostra
+      n_vec  <- c(1, 10, 100, 1000, 10000)
+      
+      # Data frame para armazenar os resultados
+      result <- data.frame(
+        n      = n_vec,
+        p_cara = NA_real_
+      )
+         
+      # TODO: completar o loop para simular os lançamentos
+      
+      # Bucle para calcular a proporção de caras en cada tamanho
+      for (i in seq_along(n_vec)) {
+        
+        # Simulamos n_vec[i]lanzamientos de moneda (probabilidade de cara = 0.3)
+        x <- rbinom(n = 1, size = n_vec[i], prob = 0.3)   
+        
+        # Guardamos la proporção de caras
+        result$p_cara[i] <- x / n_vec[i]
+      }
+      
+      # TODO: inspecionar result
+      print(result)
+      
+      # TODO: fazer um gráfico de linha da proporção de caras vs n
+      
+      plot(result$n, result$p_cara,
+           #type = "b",               # pontos e linhas
+           pch = 19,                  # com preenchimento
+           col = "blue",              # cor
+           xlab = "Tamanho da amostra (n)",
+           ylab = "Proporcao de caras",
+           main = "Simulacao: proporcao de caras vs n")
+      
+      abline(h = p_cara, lty = 2, col = "red")  # linha da probabilidade teórica
+  
+  #EXERCICIO 2:
+      
+      set.seed(123)
+      
+      # Parámetros
+      p <- 0.65
+      n <- 20
+      
+      #(1) Simulação de uma amostra
+      y <- rbinom(n, size = 1, prob = p)
+      print(y)
+      
+      #(2) Contar o número de satisfeitos
+      num_satisfeitos <- sum(y)
+      print(num_satisfeitos)
+
+      # (3a) Probabilidade P(S = 12) pela Binomial
+      prob_12 <- dbinom(12, size = n, prob = p)
+      
+      # (3b) Probabilidade P(S >= 12)
+      prob_12_ou_mais <- sum(dbinom(12:n, size = n, prob = p))
+      
+      #12:n as possibilidades de serem 12, 13, 14 até 20 os satisfeitos.
+     
+      # ou:
+      # prob_12_ou_mais <- 1 - pbinom(11, size = n, prob = p)
+      
+      # TODO: imprimir os resultados e escrever a interpretação fora do código.
+      print(prob_12)
+      print(prob_12_ou_mais)
+      
+      # Interpretação: 
+      # En una amostra de 20 estudantes, con probabilidade de satisfação de 65%,
+      # há cerca de 16% de chance de observar exatamente 12 satisfeitos y 76% de 
+      # probabilidad de tener mais de  12 satisfeitos.
+
+# EXERCICIO 3
+      
+      set.seed(123)
+      
+      N <- 5000
+      
+      dados_saude <- data.frame(
+        sexo       = sample(c("F", "M"), size = N, replace = TRUE, prob = c(0.55, 0.45)),
+        fumante    = rbinom(N, 1, 0.22),
+        hipertenso = rbinom(N, 1, 0.30)
+      )
+      
+      #(2) Estimar as probabilidades
+       P_fumante <- mean(dados_saude$fumante == 1) # P(fumante = 1)
+       P_fumante_F <- mean(dados_saude$fumante[dados_saude$sexo == "F"] == 1) #P(fumante = 1 | sexo = "F")
+       P_fumante_M <- mean(dados_saude$fumante[dados_saude$sexo == "M"] == 1) #P(fumante = 1 | sexo = "M")
+      
+      # (4) Gráfico de barras da proporção de fumantes por sexo
+      # Dica: usar dplyr + ggplot2
+       
+      library(dplyr); library(ggplot2)
+      tab_fumo <- dados_saude |>
+        dplyr::group_by(sexo) |>
+        dplyr::summarise(prop_fumante = mean(fumante))
+      
+      print (tab_fumo)
+      
+      #Fazer gráfico 
+      ggplot(tab_fumo, aes(x = sexo, y = prop_fumante, fill=sexo)) +
+      geom_col()+
+      scale_fill_manual(values = c("F" = "pink", "M" = "lightblue"))+
+      labs(x="Sexo", y="Proporção do fumantes",
+           title="Porporção do fumantes por sexo")
+      
+      # Interpretação: 
+      # Na amostra analisada, a proporção de fumantes é praticamente igual entre homens e mulheres,
+      # com uma prevalência ligeiramente maior entre as mulheres (21,8% contra 20,3%). Isso indica 
+      # que o hábito de fumar não apresenta grandes diferenças por sexo nos dados apresentados.
+      
+      
+#EXERCICIO 4 :
+      
+      # (1) Probabilidades marginais e conjunta
+      P_hipertenso <- mean(dados_saude$hipertenso == 1) #P(hipertenso = 1)
+      P_fumante    <- mean(dados_saude$fumante == 1) #P(fumante = 1)
+      P_hip_e_fum  <- mean(dados_saude$hipertenso == 1 & dados_saude$fumante == 1) #P(hipertenso = 1 & fumante = 1)
+      
+      # (2) Probabilidade condicional
+      P_hip_dado_fum <- mean(dados_saude$hipertenso[dados_saude$fumante == 1] == 1) #Entre os fumantes, qual é a proporção de hipertensos.
+      
+      # (3) Produto: P(hipertenso = 1 | fumante = 1) * P(fumante = 1)
+      P_produto <- P_hip_dado_fum * P_fumante
+      
+      # TODO: comparar P_hip_e_fum e P_produto, e interpretar.
+      print(P_hip_e_fum)
+      print(P_produto) 
+      
+      #A regra do produto funciona como esperado — o cálculo teórico coincide com a proporção observada na amostra.
+      
+      # Interprete substantivamente (há evidência de que fumantes têm maior probabilidade de serem hipertensos?)
+      print(P_hip_dado_fum)
+      print(P_hip_e_fum)
+      
+      # Na amostra analisada, existe uma probabilidade de que 1 em cada 3 fumantes seja hipertenso.
+      # O valor de 31% sugere que fumantes têm uma probabilidade maior de serem hipertensos do que a média 
+      # geral da amostra.O cálculo da probabilidade conjunta (6,6%) mostra que a ocurrencia dos dois eventos 
+      # representa uma fração menor, já que nem todos fumam.
+      
+#EXERCICIO 5: 
+      
+      set.seed(123)
+      
+      P_F         <- 0.02
+      P_T_dado_F  <- 0.9
+      P_T_dado_Fc <- 0.05
+      P_Fc        <- 1 - P_F
+      
+      # (1) Cálculo analítico de P(F|T)
+      P_F_dado_T <- (P_T_dado_F * P_F) /
+      (P_T_dado_F * P_F + P_T_dado_Fc * P_Fc)
+      
+      # (2) Simulação
+      N <- 100000
+      
+      fraude <- rbinom(N, 1, P_F) #Sorteo de fraude com prevalencia 0.02
+      alerta <- ifelse(           #Generação alerta dado fraude/nao fraude
+         fraude == 1,
+         rbinom(N, 1, P_T_dado_F), #sensibilidad
+         rbinom(N, 1, P_T_dado_Fc) # 1 - especificidad
+       )
+      
+      #(3) Estimar empiricamente P(F|Alerta)
+      P_empirico <- mean(fraude[alerta == 1] == 1)
+      
+      # TODO: comparar P_F_dado_T e P_empirico, e interpretar em texto.
+      
+      c(
+        Empirico   = P_empirico,
+        Analitico  = P_F_dado_T,
+        Diferencia = P_empirico - P_F_dado_T
+      )
+      
+      # Interpretação: Os valores são muito prõximos. A maioria dos alertas não corresponde a fraude real.
+      # Para cada 100 alertas, apenas aproximadamente 27 são de fato fraude, e aproximadamente 73 são falsos
+      # positivos que o algoritmo marcou erroneamente. Isso gera um impacto social, pois na transferência de
+      # renda serão detectados falsos positivos para uma questão delicada como a fraude, mas também há um 
+      # custo operacional, pois cada alerta gera trabalho para verificar se é ou não um erro.
+
+
+#EXERCICIO 6
+      
+      set.seed(123)
+      
+      N <- 100000
+      renda_pop <- rgamma(N, shape = 2, rate = 1/2500)
+      
+      # Função auxiliar para simular médias
+      simular_medias <- function(n, n_rep = 5000) {
+        medias <- numeric(n_rep)
+        for (i in seq_len(n_rep)) {
+           amostra <- sample(renda_pop, n, replace = TRUE)
+           medias[i] <- mean(amostra)
+        }
+        medias
+      }
+      
+      medias_n30  <- simular_medias(30)
+      medias_n200 <- simular_medias(200)
+      
+      # TODO: produzir histogramas para as distribuições de médias
+      par(mfrow = c(2, 1))
+      hist(medias_n30,  main = "Medias amostrais de renda (n = 30)")
+      hist(medias_n200, main = "Medias amostrais de renda (n = 200)")
+      par(mfrow = c(1, 1))    
+      
+      #Interpretação: 
+      # As médias amostrais tendem a seguir uma distribuição normal conforme 
+      # o tamanho da amostra aumenta.
+
+  
+#EXERCICIO 7:
+      
+      set.seed(123)
+      
+      # Caso nao tenha salvo dados_saude, recriar:
+       N <- 5000
+       dados_saude <- data.frame(
+         sexo       = sample(c("F", "M"), size = N, replace = TRUE, prob = c(0.55, 0.45)),
+         fumante    = rbinom(N, 1, 0.22),
+         hipertenso = rbinom(N, 1, 0.30)
+       )
+      
+      n <- 400
+      
+      # (1) Amostra aleatoria simples
+      amostra_saude <- dados_saude[sample(1:nrow(dados_saude), n), ]
+      
+      #seleciona 400 indivíduos aleatoriamente da população
+      
+      # (2) Proporcao amostral e IC
+       p_hat <- mean(amostra_saude$hipertenso) #proporção de hipertensos na amostra.
+       SE_p  <- sqrt(p_hat * (1 - p_hat) / n) #error padrão da proporção.
+       IC_95 <- c(
+         inferior = p_hat - 1.96 * SE_p,
+         superior = p_hat + 1.96 * SE_p
+       )                                  
+       
+      # (3) Proporção verdadeira na população - 5000 individuos
+      p_verdadeiro <- mean(dados_saude$hipertenso)
+      
+      # TODO: comparar p_hat, IC_95 e p_verdadeiro em texto.
+      
+      print(p_hat)
+      print(p_verdadeiro)
+      print (IC_95)
+      
+      #A estimativa da amostra está muito próxima do valor real.
+      
+      #Interprete o intervalo de confiança em linguagem de política pública.
+      
+      #Com base na amostra, estimamos que cerca de 32% da população adulta
+      #seja hipertensa. O intervalo de confiança de 95% indica que esse valor
+      #pode variar entre 27.67% e 36.83%. Assim, para sua aplicação nas políticas
+      #públicas devem considerar que aproximadamente 3 em cada 10 cidadãos
+      #necessita de acções de prevenção e tratamento da hipertensão.
+      
+     
+#EXERCICI0 8: Correlação, regressão simples e inferência (educação)
+      
+      set.seed(123)
+      
+      N <- 2000 
+      
+      dados_educacao <- data.frame(
+        ideb        = rnorm(N, mean = 5.5, sd = 0.7),   #IDEB:desempenho escolar
+        gasto_aluno = rnorm(N, mean = 6000, sd = 1500)  
+      )
+      
+      # Introduzir correlação leve (opcional)
+      dados_educacao$ideb <- dados_educacao$ideb +
+        0.0002 * (dados_educacao$gasto_aluno - 6000)
+      
+      # (2) Correlação de Pearson - availar a relação lineal
+      cor_ideb_gasto <- cor(dados_educacao$ideb, dados_educacao$gasto_aluno)
+      print(cor_ideb_gasto)
+      
+      # (3) Regressão simple - como muda o IDEB no função do gasto?
+      modelo <- lm(ideb ~ gasto_aluno, data = dados_educacao)
+      summary(modelo) 
+      
+      # Interpretação: Cada R$ 1 000 adicionais do gasto, espera-se um aumento do IDEB em 0.1938
+      
+      confint(modelo) 
+      
+      # Interpretação: O incremento pode ser entre 0.173 e 0.2146 en el IDEB por cada R$ 1 000 adicionais.
+   
+      # Interpretar os coeficientes, valor-p e IC em texto.
+      
+      # Quando gasto_aluno = 0, o valor esperado do desempenho é 4,36. O coeficiente de "gasto_aluno" 
+      # significa que, para cada R$ 1000 adicionais por aluno o IDEB aumentaria em 0,19 pontos.
+      # Seu intervalo de confiança sugere que, para cada R$ 1000 adicionais, o IDEB poderia aumentar
+      # entre 0,18 e 0,21 pontos.
+      
+      # A hipotese nula é "Maior gasto x aluno nao tera efeito no ideb. No modelo, o valor-p é muito
+      # próximo de 0 (p-value: < 2,2e-16), o que mostra que a relação é estatisticamente significativa. 
+      # Portanto, rejeita-se a hipotese nula. Há evidência muito forte de que o gasto por aluno está
+      # positivamente associado ao desempenho. Apesar disso, o modelo explica apenas cerca de 14% da 
+      # variação total, indicando que outros fatores afeitam no desempenho dos alunos.
+      
+      # OPCIONAL:
+      
+      ggplot(dados_educacao, aes(x = gasto_aluno, y = ideb)) +
+        geom_point(alpha = 0.8, color = "steelblue") +
+        geom_smooth(method = "lm", se = TRUE, color = "darkgreen") +
+        labs(title = "Rela????o entre gasto por aluno e IDEB",
+             x = "Gasto por aluno",
+             y = "IDEB") +
+        theme_minimal()
+      
+      
+  #EXERCICIO 9: Margem de erro e tamanho amostral (TSE)
+      
+      set.seed(123)
+      
+      N <- 5000
+      
+      dados_tse <- data.frame(
+        id_mun       = 1:N,
+        prop_partido = rbeta(N, shape1 = 10, shape2 = 15)
+      )
+      
+      n_amostra <- 600
+      n_rep     <- 1000
+      
+      # vetor para guardar as proporções amostrais
+      p_hat_vec <- numeric(n_rep)
+      
+      for (r in 1:n_rep) {
+        #(3) sortear um munic??pio
+         id_escolhido <- sample(dados_tse$id_mun, 1)
+         p_mun <- dados_tse$prop_partido[dados_tse$id_mun == id_escolhido]
+        # # sortear 600 eleitores (Bernoulli)
+         votos <- rbinom(n_amostra, size = 1, prob = p_mun)
+         p_hat_vec[r] <- mean(votos)
+      }
+      
+      # (4) margem de erro (pior caso)
+      ME <- 1.96 * sqrt(0.25 / n_amostra)
+      print(ME)
+      
+    # TODO: fazer um histograma de p_hat_vec e discutir a relação com a margem de erro.
+      print(p_hat)
+      print(p_hat_vec)
+      
+    # Compare essa margem de erro “de praxe” com a variabilidade real observada nas
+    # proporções simuladas (por exemplo, com um histograma de p_hat).
+      
+      hist(p_hat_vec,
+           breaks = 30,                
+           col = "lightblue",           
+           border = "white")
+      
+    # Discuta o que isso implica para a interpretação de pesquisas eleitorais.
+      
+      # O margem de erro de 0,04 indica a variabilidade dos dados da amostra
+      # respeito os dados da população. Essa margem é útil sempre que a amostra
+      # é representativa. Em contextos eleitorais, às vezes é enganosa e otimista,
+      # a variabilidade real pode ser maior e depende da representatividade geográfica
+      # e demográfica da amostra.
+    
+      
+  #EXERCICIO 10: Regressão e distribuição amostral do coeficiente (TSE)
+    
+      set.seed(123)
+      
+      N <- 5000
+      
+      renda_media <- rnorm(N, mean = 2500, sd = 600)
+    
+      prop_partido <- plogis(
+        -1 + 0.0006 * renda_media + rnorm(N, 0, 0.3)
+      )
+      
+      dados_tse <- data.frame(
+        id_mun      = 1:N,
+        renda_media = rnorm(N, mean = 2500, sd = 600)
+      )
+      
+      # Probabilidade de apoio ao partido 
+      dados_tse$prop_partido <- plogis(
+        -1 + 0.0006 * dados_tse$renda_media + rnorm(N, 0, 0.3)
+      )
+      
+      n_mun_amostra <- 300
+      n_eleitores   <- 400
+      n_rep         <- 500
+      
+      coef_angular <- numeric(n_rep)
+      
+      for (r in 1:n_rep) {
+        # (4) Sortear municípios
+         mun_sorteados <- sample(dados_tse$id_mun, n_mun_amostra)
+         base_pesq <- dados_tse[dados_tse$id_mun %in% mun_sorteados, ]
+        
+        # # Para cada município, simular votos e calcular proporção p_hat
+         p_hat <- numeric(n_mun_amostra)
+        
+      for (i in seq_len(n_mun_amostra)) {
+           p_true <- base_pesq$prop_partido[i]
+           votos  <- rbinom(n_eleitores, size = 1, prob = p_true)
+           p_hat[i] <- mean(votos)
+         }
+
+        base_pesq$p_hat <- p_hat
+        
+        # # (5) Ajustar regressão simples
+        modelo <- lm(p_hat ~ renda_media, data = base_pesq)
+        coef_angular[r] <- coef(modelo)[2]
+      }
+      
+      median(coef_angular)
+      
+      # TODO: produzir um histograma de coef_angular, e discutir o que representa essa distribuição.
+      
+        hist(coef_angular,
+           breaks = 30,                
+           col = "lightblue",           
+           border = "white",           
+           main = "Distribução de coeficientes",
+           xlab = "Coeficiente angular",
+           ylab = "Frecuencia")
+      
+ 
+      #Discussão:
+        # O histograma mostra a distribução amostral do estimador da relação  
+        # entre renda e apoio ao partido, em outras palavras como o coeficiente estimado
+        # varia ao longo de reamostragens. Quase não há coeficientes próximos de zero, o que
+        # significa que a probabilidade de não existir relação entre as variáveis parece baixa 
+        # nas réplicas. A média dessa distribuição aproxima o valor verdadeiro do parâmetro. 
+        # O estimador tem baixa variância: pequenas mudanças na amostra produzem 
+        # coeficientes semelhantes.
+        
+  sessionInfo() 
+      
